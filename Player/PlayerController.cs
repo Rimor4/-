@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -158,6 +157,9 @@ public class PlayerController : MonoBehaviour
             rb.AddForce(new Vector2(-inputDirection.x, 2.5f) * wallJumpForce, ForceMode2D.Impulse);
             wallJump = true;
         }
+
+        // 播放音效
+        GetComponent<AudioDefination>()?.PlayAudioClip();
     }
 
     private void PlayerAttack(InputAction.CallbackContext obj)

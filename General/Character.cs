@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,7 +16,7 @@ public class Character : MonoBehaviour
     [HideInInspector] public float invulnerableCounter;
     public bool invulnerable;
 
-    public UnityEvent<Character> OnHealthChange;    // 挂载CharacterEventSO上的事件
+    public UnityEvent<Character> OnHealthChange;    // 使用UnityEvent来呼叫SO, 而不是向TeleportPoint那样在脚本中调用SO方法
     public UnityEvent<Transform> OnTakeDamage;
     public UnityEvent OnDie;
 
@@ -26,7 +24,7 @@ public class Character : MonoBehaviour
     {
         currentHealth = maxHealth;
         currentPower = maxPower;
-        OnHealthChange?.Invoke(this);   
+        OnHealthChange?.Invoke(this);       // 相当于SO.RaiseEvent(this);  
     }
 
     private void Update()

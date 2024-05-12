@@ -1,11 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Cinemachine;
 using UnityEngine;
 
 public class CinemaControl : MonoBehaviour
 {
+    [Header("Event Listening")]
+    public VoidEventSO afterSceneLoadedEvent;
+
     private CinemachineConfiner2D confiner2D;
     public CinemachineImpulseSource impulseSource;
     public VoidEventSO cameraShakeEvent;
@@ -17,13 +18,17 @@ public class CinemaControl : MonoBehaviour
     private void OnEnable() {
         // 监听并注册来自VoidEventSO广播的事件
         cameraShakeEvent.OnEventRaised += OnCameraShakeEvent;
-    }
-    private void OnDisable() {
-        cameraShakeEvent.OnEventRaised -= OnCameraShakeEvent;
+        afterSceneLoadedEvent.OnEventRaised += OnAfterSceneLoadedEvent;
     }
 
-    // 场景切换后更改
-    private void Start() {
+    private void OnDisable() {
+        cameraShakeEvent.OnEventRaised -= OnCameraShakeEvent;
+        afterSceneLoadedEvent.OnEventRaised -= OnAfterSceneLoadedEvent;
+    }
+
+    private void OnAfterSceneLoadedEvent()
+    {
+        // 场景加载后获得新边界
         GetNewCameraBounds();    
     }
 

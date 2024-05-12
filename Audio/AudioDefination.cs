@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioDefination : MonoBehaviour
@@ -11,11 +9,12 @@ public class AudioDefination : MonoBehaviour
 
     private void OnEnable() {
         if (playOnEnable) {
+            // BGM需要立即播放
             PlayAudioClip();
         }
     }
 
-    private void PlayAudioClip() {
+    public void PlayAudioClip() {
         // 不需要 "+="
         playAudioEvent.RaiseEvent(audioClip);    
     }

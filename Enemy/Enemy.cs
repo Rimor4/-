@@ -1,9 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Runtime.InteropServices;
-using Unity.PlasticSCM.Editor.WebApi;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(PhysicsCheck))]

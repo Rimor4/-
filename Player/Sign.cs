@@ -12,6 +12,7 @@ public class Sign : MonoBehaviour
     private Animator anim;
     public Transform playerTrans;
     public GameObject signSprite;
+    private IInteractable targetItem;
     private bool canPress;
 
     private void Awake() {
@@ -23,11 +24,24 @@ public class Sign : MonoBehaviour
 
     private void OnEnable() {
         InputSystem.onActionChange += OnActionChange;
+        playerInput.Gameplay.Confirm.started += OnConfirm;
+    }
+
+    private void OnDisable() {
+        canPress = false;        
     }
 
     private void Update() {
         signSprite.GetComponent<SpriteRenderer>().enabled  = canPress;
         signSprite.transform.localScale = playerTrans.localScale; 
+    }
+
+    private void OnConfirm(InputAction.CallbackContext context)
+    {
+        if (canPress) {
+            targetItem.TriggerAction();
+            GetComponent<AudioDefination>()?.PlayAudioClip();
+        }
     }
 
     /// <summary>
@@ -37,21 +51,24 @@ public class Sign : MonoBehaviour
     {
         // // 当前激活的输入设备的名字
         // Debug.Log(((InputAction)obj).activeControl.device);
-        var device = ((InputAction)obj).activeControl.device;
+        if (obj is InputAction action) {
+            var device = action.activeControl.device;
 
-        switch (device) {
-            case Keyboard:
-                anim.Play("keyboard");
-                break;
-            case DualShockGamepad:
-                anim.Play("ps");
-                break;
+            switch (device) {
+                case Keyboard:
+                    anim.Play("keyboard");
+                    break;
+                case DualShockGamepad:
+                    anim.Play("ps");
+                    break;
+            }
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("Interactive")) {
+        if (other.CompareTag("Interactable")) {
             canPress = true;
+            targetItem = other.GetComponent<IInteractable>();
         }
     }
 
