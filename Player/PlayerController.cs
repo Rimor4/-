@@ -12,19 +12,9 @@ public class PlayerController : MonoBehaviour
     private Character character;
     public Vector2 inputDirection;
 
-    [Header("Basic parameters")]
-    public float speed;
-    public float jumpForce;
-    public float wallJumpForce;
-    public float hurtForce;
-    public float slideDistance;
-    public float slideSpeed;
-    public float slidePowerCost;
-
-    private float runSpeed;
-    private float walkSpeed => speed / 2.5f;     // Lambda表达式, 当尝试访问walkSpeed时, 计算该表达式 
-    private Vector2 originSize;
-    private Vector2 originOffset;
+    [Header("Event Listening")]
+    public SceneLoadEventSO loadEvent;
+    public VoidEventSO afterSceneLoadedEvent;
 
     [Header("Physic Material")]
     public PhysicsMaterial2D normal;
@@ -37,6 +27,19 @@ public class PlayerController : MonoBehaviour
     public bool isAttack;
     public bool wallJump;
     public bool isSlide;
+
+    [Header("Basic parameters")]
+    public float speed;
+    public float jumpForce;
+    public float wallJumpForce;
+    public float hurtForce;
+    public float slideDistance;
+    public float slideSpeed;
+    public float slidePowerCost;
+    private float runSpeed;
+    private float walkSpeed => speed / 2.5f;     // 表达式体（只读）, 当尝试访问walkSpeed时, 计算该表达式 
+    private Vector2 originSize;
+    private Vector2 originOffset;
 
     private void Awake()
     {
@@ -53,7 +56,12 @@ public class PlayerController : MonoBehaviour
 
         // 跳跃:    按下Jump对应的按键时调用Jump()方法;
         inputControl.Gameplay.Jump.started += Jump;
-        #region 强制走路
+
+        // 攻击
+        inputControl.Gameplay.Attack.started += PlayerAttack;
+        inputControl.Gameplay.Slide.started += Slide;
+
+        #region 跑步切换为走路
         runSpeed = speed;
         inputControl.Gameplay.WalkButton.performed += ctx =>
         {
@@ -70,19 +78,25 @@ public class PlayerController : MonoBehaviour
             }
         };
         #endregion
-        // 攻击
-        inputControl.Gameplay.Attack.started += PlayerAttack;
-        inputControl.Gameplay.Slide.started += Slide;
     }
 
     private void OnEnable()
     {
         inputControl.Enable();
+        loadEvent.LoadRequestEvent += OnLoadEvent;
+        afterSceneLoadedEvent.OnEventRaised += OnAfterSceneLoadedEvent;
+    }
+
+    private void OnDisable()
+    {
+        inputControl.Disable();
+        loadEvent.LoadRequestEvent -= OnLoadEvent;
+        afterSceneLoadedEvent.OnEventRaised -= OnAfterSceneLoadedEvent;
     }
 
     private void Update()
     {
-        // 键盘输入方向  
+        // 读取键盘输入方向  
         inputDirection = inputControl.Gameplay.Move.ReadValue<Vector2>();
     }
 
@@ -95,16 +109,21 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnDisable()
+    private void OnLoadEvent(GameSceneSO sceneToGo, Vector3 posToGo, bool arg2)
     {
-        inputControl.Disable();
+        // 加载场景时人物不能控制
+        inputControl.Gameplay.Disable();
+    }
+
+    private void OnAfterSceneLoadedEvent()
+    {
+        inputControl.Gameplay.Enable();
     }
 
     private void Move()
     {
         if (!isCrouch && !wallJump)
         {
-            // 蹬墙跳
             rb.velocity = new Vector2(inputDirection.x * speed * Time.deltaTime, rb.velocity.y);
         }
 
@@ -159,12 +178,12 @@ public class PlayerController : MonoBehaviour
         }
 
         // 播放音效
-        GetComponent<AudioDefination>()?.PlayAudioClip();
+        GetComponent<AudioDefination>().PlayAudioClip();
     }
 
     private void PlayerAttack(InputAction.CallbackContext obj)
     {
-        playerAnimation.PlayerAttack();
+        playerAnimation.PlayAttack();
         isAttack = true;
     }
 
@@ -178,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
             StartCoroutine(TriggerSlide(targetPos));
 
-            GetComponent<Character>().OnSlide(slidePowerCost);  
+            character.OnSlide(slidePowerCost);
         }
     }
 
@@ -186,7 +205,7 @@ public class PlayerController : MonoBehaviour
     {
         do
         {
-            // 不需要暂停，直接返回null
+            // 让while循环里面的逻辑每帧执行一次而不是一帧内执行完
             yield return null;
 
             if (!physicsCheck.isGround)
@@ -202,7 +221,6 @@ public class PlayerController : MonoBehaviour
         } while (Mathf.Abs(target.x - transform.position.x) > 0.1f);
 
         isSlide = false;
-        gameObject.layer = LayerMask.NameToLayer("Player");
     }
 
     public void CheckState()
@@ -221,19 +239,22 @@ public class PlayerController : MonoBehaviour
         }
 
         // 死亡后不受伤，滑铲时无敌
-        if (isDead || isSlide) {
-            gameObject.layer = LayerMask.NameToLayer("Enemy"); 
-        } else {
+        if (isDead || isSlide)
+        {
+            gameObject.layer = LayerMask.NameToLayer("Enemy");
+        }
+        else
+        {
             gameObject.layer = LayerMask.NameToLayer("Player");
         }
     }
 
-    #region UnityEvent
+    #region 事件调用方法
     public void GetHurt(Transform attacker)
     {
         isHurt = true;
         rb.velocity = Vector2.zero;
-        Vector2 dir = new Vector2((transform.position.x - attacker.position.x), 0).normalized;
+        Vector2 dir = new Vector2(transform.position.x - attacker.position.x, 0).normalized;
 
         rb.AddForce(dir * hurtForce, ForceMode2D.Impulse);
     }

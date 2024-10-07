@@ -13,14 +13,15 @@ public class PhysicsCheck : MonoBehaviour
     public Vector2 rightOffset;
     public float checkRadius;
     public LayerMask groundLayer;
-    
+
     [Header("State")]
     public bool isGround;
     public bool touchLeftWall;
     public bool touchRightWall;
     public bool onWall;
 
-    private void Awake() {
+    private void Awake()
+    {
         coll = GetComponent<CapsuleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
 
@@ -30,13 +31,15 @@ public class PhysicsCheck : MonoBehaviour
             playerController = GetComponent<PlayerController>();
     }
 
-    private void Update() {
+    private void Update()
+    {
         Check();
     }
 
-    private void Check() {
+    private void Check()
+    {
         // 检测地面
-        // onWall 时滞后地面监测
+        // onWall 时上移检测点，滞后地面监测
         isGround = Physics2D.OverlapCircle(new Vector2(bottomOffset.x * transform.localScale.x, onWall ? bottomOffset.y : 0) + (Vector2)transform.position, checkRadius, groundLayer);
 
         // 墙体判断
@@ -48,7 +51,8 @@ public class PhysicsCheck : MonoBehaviour
             onWall = (touchLeftWall && playerController.inputDirection.x < 0f || touchRightWall && playerController.inputDirection.x > 0f) && rb.velocity.y < 0f;
     }
 
-    private void OnDrawGizmosSelected() {
+    private void OnDrawGizmosSelected()
+    {
         Gizmos.DrawWireSphere((Vector2)transform.position + bottomOffset, checkRadius);
         Gizmos.DrawWireSphere((Vector2)transform.position + leftOffset, checkRadius);
         Gizmos.DrawWireSphere((Vector2)transform.position + rightOffset, checkRadius);

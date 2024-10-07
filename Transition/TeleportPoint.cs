@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TeleportPoint : MonoBehaviour, IInteractable
@@ -10,7 +8,7 @@ public class TeleportPoint : MonoBehaviour, IInteractable
 
     public void TriggerAction()
     {
-        // 呼叫者
+        // 类似AudioDefination
         loadEventSO.RaiseLoadRequestEvent(sceneToGO, positionToGO, true);
     }
 }

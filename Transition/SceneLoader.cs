@@ -1,9 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
@@ -12,64 +8,76 @@ public class SceneLoader : MonoBehaviour
 {
     public Transform playerTrans;
     public Vector3 firstPosition;
+    public Vector3 menuPosition;
 
     [Header("Event Listening")]
     public SceneLoadEventSO loadEventSO;
-    public GameSceneSO firstLoadScene;
+    public VoidEventSO newGameEventSO;
 
     [Header("Broadcasting")]
     public VoidEventSO afterSceneLoadedEvent;
     public FadeEventSO fadeEvent;
+    public SceneLoadEventSO unloadedSceneEvent;
 
-    [SerializeField] private GameSceneSO currentLoadedScene;
+    [Header("Scenes")]
+    public GameSceneSO firstLoadScene;
+    public GameSceneSO menuScene;
+    private GameSceneSO currentLoadedScene;
     private GameSceneSO sceneToLoad;
-    private Vector3 positionToGo;
+
+    public Vector3 positionToGo;
     private bool fadeScreen;
     private bool isLoading;
 
     public float fadeDuration;  // 渐隐渐出时间
 
-    // TODO:
-    private void Start() {
-        NewGame();
-    }
-
     private void OnEnable()
     {
         loadEventSO.LoadRequestEvent += OnLoadRequestRequest;
+        newGameEventSO.OnEventRaised += NewGame;
     }
 
     private void OnDisable()
     {
         loadEventSO.LoadRequestEvent -= OnLoadRequestRequest;
+        newGameEventSO.OnEventRaised -= NewGame;
     }
 
-    private void NewGame() {
+    private void Start()
+    {
+        loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
+    }
+
+    private void NewGame()
+    {
         sceneToLoad = firstLoadScene;
-        OnLoadRequestRequest(sceneToLoad, firstPosition, true);
+        loadEventSO.RaiseLoadRequestEvent(sceneToLoad, firstPosition, true);
     }
 
     /// <summary>
     /// 场景加载事件请求
     /// </summary>
-    /// <param name="locationToLoad"></param>
-    /// <param name="posToGo"></param>
-    /// <param name="fadeScreen"></param>
+    /// <param name="locationToLoad">加载的场景引用</param>
+    /// <param name="posToGo">玩家传送的位置</param>
+    /// <param name="fadeScreen">是否渐入渐出</param>
     private void OnLoadRequestRequest(GameSceneSO locationToLoad, Vector3 posToGo, bool fadeScreen)
     {
-        if (isLoading) {
+        if (isLoading)
+        {
             return;
         }
 
         isLoading = true;
-        this.sceneToLoad = locationToLoad;
-        this.positionToGo = posToGo;
+        sceneToLoad = locationToLoad;
+        positionToGo = posToGo;
         this.fadeScreen = fadeScreen;
 
         if (currentLoadedScene != null)
         {
             StartCoroutine(UnLoadPreviousScene());
-        } else {
+        }
+        else
+        {
             LoadNewScene();
         }
     }
@@ -82,6 +90,10 @@ public class SceneLoader : MonoBehaviour
         }
 
         yield return new WaitForSeconds(fadeDuration);  // 保证渐隐渐出结束后才卸载场景
+
+        // 场景卸载时启动UI显示
+        unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
+
         yield return currentLoadedScene.sceneReference.UnLoadScene();   // 确保场景完全卸载之前，协程会暂停执行
 
         // 关闭人物
@@ -98,7 +110,7 @@ public class SceneLoader : MonoBehaviour
     }
 
     /// <summary>
-    /// 场景加载之后
+    /// 注册到loadingOption.Completed，场景加载之后调用
     /// </summary>
     /// <param name="handle"></param>
     private void OnLoadCompleted(AsyncOperationHandle<SceneInstance> handle)
@@ -106,16 +118,18 @@ public class SceneLoader : MonoBehaviour
         currentLoadedScene = sceneToLoad;
 
         playerTrans.position = positionToGo;
-        
+
         playerTrans.gameObject.SetActive(true);
-        if (fadeScreen) {
+        if (fadeScreen)
+        {
             fadeEvent.FadeOut(fadeDuration);
         }
-        
+
         isLoading = false;
 
-        // 场景加载后事件
-        afterSceneLoadedEvent.RaiseEvent();
+        if (currentLoadedScene.sceneType != SceneType.Menu)
+            // 场景加载后事件(菜单加载完成后人物不能移动)
+            afterSceneLoadedEvent.RaiseEvent();
     }
 }
 

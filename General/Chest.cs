@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Chest : MonoBehaviour, IInteractable
@@ -9,24 +7,29 @@ public class Chest : MonoBehaviour, IInteractable
     public Sprite closeSprite;
     public bool isDone;
 
-    private void Awake() {
+    private void Awake()
+    {
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
-    
-    private void OnEnable() {
+
+    private void OnEnable()
+    {
         spriteRenderer.sprite = isDone ? openSprite : closeSprite;
     }
 
     public void TriggerAction()
     {
-        if (!isDone) {
+        if (!isDone)
+        {
             OpenChest();
+            GetComponent<AudioDefination>().PlayAudioClip();
         }
     }
 
-    private void OpenChest() {
+    private void OpenChest()
+    {
         spriteRenderer.sprite = openSprite;
         isDone = true;
-        this.gameObject.tag = "Untagged";
+        gameObject.tag = "Untagged";
     }
 }

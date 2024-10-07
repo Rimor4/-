@@ -1,12 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
 
 public class BeePatrolState : BaseState
 {
-    private Vector3 target;
+    private Vector3 target;     // 随机移动的目标位置
     private Vector3 moveDir;
     public override void OnEnter(Enemy enemy)
     {
@@ -17,20 +13,25 @@ public class BeePatrolState : BaseState
 
     public override void LogicUpdate()
     {
-        if (currentEnemy.FoundPlayer()) {
+        if (currentEnemy.FoundPlayer())
+        {
             currentEnemy.SwitchState(NPCState.Chase);
         }
 
         // 检测是否移动到了目标位置
-        if (Mathf.Abs(target.x - currentEnemy.transform.position.x) < 0.1f && Mathf.Abs(target.y - currentEnemy.transform.position.y) < 0.1f) {
+        if (Mathf.Abs(target.x - currentEnemy.transform.position.x) < 0.1f && Mathf.Abs(target.y - currentEnemy.transform.position.y) < 0.1f)
+        {
             currentEnemy.wait = true;
-            target = currentEnemy.GetNewPoint();    
+            target = currentEnemy.GetNewPoint();
         }
 
         moveDir = (target - currentEnemy.transform.position).normalized;
-        if (moveDir.x > 0) {
+        if (moveDir.x > 0)
+        {
             currentEnemy.transform.localScale = new Vector3(-1, 1, 1);
-        } else if (moveDir.x < 0) {
+        }
+        else if (moveDir.x < 0)
+        {
             currentEnemy.transform.localScale = new Vector3(1, 1, 1);
         }
     }
@@ -38,10 +39,12 @@ public class BeePatrolState : BaseState
 
     public override void PhysicsUpdate()
     {
-        // Move()
-        if (!currentEnemy.wait && !currentEnemy.isHurt && !currentEnemy.isDead) {
+        if (!currentEnemy.wait && !currentEnemy.isHurt && !currentEnemy.isDead)
+        {
             currentEnemy.rb.velocity = currentEnemy.currentSpeed * Time.deltaTime * moveDir;
-        } else {
+        }
+        else
+        {
             currentEnemy.rb.velocity = Vector2.zero;
         }
     }
@@ -49,5 +52,4 @@ public class BeePatrolState : BaseState
     public override void OnExit()
     {
     }
-
 }

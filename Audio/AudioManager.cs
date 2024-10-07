@@ -10,22 +10,26 @@ public class AudioManager : MonoBehaviour
     public AudioSource BGMSource;
     public AudioSource FXSource;
 
-    private void OnEnable() {
+    private void OnEnable()
+    {
         FXEvent.OnEventRaised += OnFXEvent;
         BGMEvent.OnEventRaised += OnBGMEvent;
     }
 
-    private void OnDisable() {
-        FXEvent.OnEventRaised -= OnFXEvent;    
+    private void OnDisable()
+    {
+        FXEvent.OnEventRaised -= OnFXEvent;
         BGMEvent.OnEventRaised -= OnBGMEvent;
     }
 
-    private void OnFXEvent(AudioClip clip) {
+    private void OnFXEvent(AudioClip clip)
+    {
         FXSource.clip = clip;
         FXSource.Play();
     }
 
-    private void OnBGMEvent(AudioClip clip) {
+    private void OnBGMEvent(AudioClip clip)
+    {
         BGMSource.clip = clip;
         BGMSource.Play();
     }

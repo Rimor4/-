@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Bee : Enemy
@@ -7,16 +5,18 @@ public class Bee : Enemy
     [Header("Moving Range")]
     public float patrolRadius;
 
-    protected override void Awake() {
+    protected override void Awake()
+    {
         base.Awake();
-        patrolState = new BeePatrolState(); 
+        patrolState = new BeePatrolState();
         chaseState = new BeeChaseState();
     }
     public override bool FoundPlayer()
     {
         var obj = Physics2D.OverlapCircle(transform.position, checkDistance, attackLayer);
 
-        if (obj) {
+        if (obj)
+        {
             attacker = obj.transform;
         }
 
@@ -25,12 +25,13 @@ public class Bee : Enemy
 
     public override void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(transform.position, checkDistance); 
+        Gizmos.DrawWireSphere(transform.position, checkDistance);
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, patrolRadius); 
+        Gizmos.DrawWireSphere(transform.position, patrolRadius);
     }
 
-    public override Vector3 GetNewPoint() {
+    public override Vector3 GetNewPoint()
+    {
         var targetX = Random.Range(-patrolRadius, patrolRadius);
         var targetY = Random.Range(-patrolRadius, patrolRadius);
 
@@ -39,7 +40,7 @@ public class Bee : Enemy
 
     public override void Move()
     {
-        // 留空给State代码
+        // 空方法覆盖父类，在状态机代码中重写移动逻辑
     }
 }
 

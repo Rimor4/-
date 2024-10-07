@@ -7,15 +7,17 @@ public class AudioDefination : MonoBehaviour
     public AudioClip audioClip;
     public bool playOnEnable;
 
-    private void OnEnable() {
-        if (playOnEnable) {
-            // BGM需要立即播放
+    private void OnEnable()
+    {
+        if (playOnEnable)
+        {
             PlayAudioClip();
         }
     }
 
-    public void PlayAudioClip() {
-        // 不需要 "+="
-        playAudioEvent.RaiseEvent(audioClip);    
+    public void PlayAudioClip()
+    {
+        // 不同于在OnHealthChange事件上启动，直接在方法中引发SO事件
+        playAudioEvent.RaiseEvent(audioClip);
     }
 }

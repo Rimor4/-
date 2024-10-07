@@ -1,4 +1,3 @@
-using System;
 using Cinemachine;
 using UnityEngine;
 
@@ -11,17 +10,19 @@ public class CinemaControl : MonoBehaviour
     public CinemachineImpulseSource impulseSource;
     public VoidEventSO cameraShakeEvent;
 
-    private void Awake() {
+    private void Awake()
+    {
         confiner2D = GetComponent<CinemachineConfiner2D>();
     }
 
-    private void OnEnable() {
-        // 监听并注册来自VoidEventSO广播的事件
+    private void OnEnable()
+    {
         cameraShakeEvent.OnEventRaised += OnCameraShakeEvent;
         afterSceneLoadedEvent.OnEventRaised += OnAfterSceneLoadedEvent;
     }
 
-    private void OnDisable() {
+    private void OnDisable()
+    {
         cameraShakeEvent.OnEventRaised -= OnCameraShakeEvent;
         afterSceneLoadedEvent.OnEventRaised -= OnAfterSceneLoadedEvent;
     }
@@ -29,14 +30,15 @@ public class CinemaControl : MonoBehaviour
     private void OnAfterSceneLoadedEvent()
     {
         // 场景加载后获得新边界
-        GetNewCameraBounds();    
+        GetNewCameraBounds();
     }
 
-    private void GetNewCameraBounds() {
-        var obj = GameObject.FindGameObjectWithTag("Bounds");
-        if (obj == null) 
+    private void GetNewCameraBounds()
+    {
+        var obj = GameObject.FindWithTag("Bounds");
+        if (obj == null)
             return;
-        
+
         confiner2D.m_BoundingShape2D = obj.GetComponent<Collider2D>();
 
         confiner2D.InvalidateCache();

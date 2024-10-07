@@ -1,10 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
 public class SnailSkillState : BaseState
 {
     public override void OnEnter(Enemy enemy)
@@ -14,9 +7,6 @@ public class SnailSkillState : BaseState
         currentEnemy.anim.SetBool("walk", false);
         currentEnemy.anim.SetBool("hide", true);
         currentEnemy.anim.SetTrigger("skill");
-
-        currentEnemy.lostTimeCounter = currentEnemy.lostTime;
-
         currentEnemy.GetComponent<Character>().invulnerable = true;
         currentEnemy.GetComponent<Character>().invulnerableCounter = currentEnemy.lostTimeCounter;
     }

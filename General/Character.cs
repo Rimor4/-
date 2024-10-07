@@ -1,9 +1,12 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// 有关伤害的类方法
+// 记录人物基本属性、计算伤害的类
 public class Character : MonoBehaviour
 {
+    [Header("Event Listening")]
+    public VoidEventSO newGameEvent;
+
     [Header("Attributes")]
     public float maxHealth;
     public float currentHealth;
@@ -11,20 +14,35 @@ public class Character : MonoBehaviour
     public float currentPower;
     public float powerRecoverSpeed;
 
-    [Header("受伤无敌")]
+    [Header("Invulnerable after injury")]
     public float invulnerableDuration;
     [HideInInspector] public float invulnerableCounter;
     public bool invulnerable;
 
-    public UnityEvent<Character> OnHealthChange;    // 使用UnityEvent来呼叫SO, 而不是向TeleportPoint那样在脚本中调用SO方法
+    public UnityEvent<Character> OnHealthChange;    // 启动UnityEvent来呼叫SO（中介）来向订阅者传递数据, 与向TeleportPoint那样直接在脚本中调用SO方法不同
     public UnityEvent<Transform> OnTakeDamage;
     public UnityEvent OnDie;
 
     private void Start()
     {
         currentHealth = maxHealth;
+    }
+
+    private void NewGame()
+    {
+        currentHealth = maxHealth;
         currentPower = maxPower;
-        OnHealthChange?.Invoke(this);       // 相当于SO.RaiseEvent(this);  
+        OnHealthChange?.Invoke(this);
+    }
+
+    private void OnEnable()
+    {
+        newGameEvent.OnEventRaised += NewGame;
+    }
+
+    private void OnDisable()
+    {
+        newGameEvent.OnEventRaised -= NewGame;
     }
 
     private void Update()
@@ -38,14 +56,17 @@ public class Character : MonoBehaviour
             }
         }
 
-        if (currentPower < maxPower) {
+        if (currentPower < maxPower)
+        {
             currentPower += Time.deltaTime * powerRecoverSpeed;
         }
     }
 
-    private void OnTriggerStay2D(Collider2D other) {
+    private void OnTriggerStay2D(Collider2D other)
+    {
         // 角色掉入水中, 死亡
-        if (other.CompareTag("Water")) {
+        if (other.CompareTag("Water"))
+        {
             currentHealth = 0;
             OnHealthChange?.Invoke(this);
             OnDie?.Invoke();
@@ -62,13 +83,13 @@ public class Character : MonoBehaviour
         {
             currentHealth = afterAttackHealth;
             TriggerInvulnerable();
-            // 执行受伤
+            // 触发OnTakeDamage事件
             OnTakeDamage?.Invoke(attacker.transform);
         }
         else
         {
             currentHealth = 0;
-            // 触发死亡
+            // 触发OnDie事件
             OnDie?.Invoke();
         }
 
@@ -84,7 +105,12 @@ public class Character : MonoBehaviour
         }
     }
 
-    public void OnSlide(float cost) {
+    /// <summary>
+    /// 消耗能量来滑铲
+    /// </summary>
+    /// <param name="cost"></param>
+    public void OnSlide(float cost)
+    {
         currentPower -= cost;
         OnHealthChange?.Invoke(this);
     }

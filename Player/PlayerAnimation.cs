@@ -32,7 +32,8 @@ public class PlayerAnimation : MonoBehaviour
         anim.SetBool("isSlide", playerController.isSlide);
     }
 
-    public void PlayerAttack() {
+    public void PlayAttack()
+    {
         anim.SetTrigger("attack");
     }
 
