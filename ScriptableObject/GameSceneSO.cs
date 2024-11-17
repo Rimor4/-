@@ -7,4 +7,5 @@ public class GameSceneSO : ScriptableObject
     // 引用场景资源
     public AssetReference sceneReference;
     public SceneType sceneType;
+    public string sceneName;
 }

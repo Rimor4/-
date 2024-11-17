@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class UIManager : MonoBehaviour
 {
@@ -6,18 +8,42 @@ public class UIManager : MonoBehaviour
 
     [Header("Event Listening")]
     public CharacterEventSO healthEvent;
-    public SceneLoadEventSO loadEvent;
+    public SceneLoadEventSO unloadedSceneEvent;
+    public VoidEventSO loadDataEvent;
+    public VoidEventSO gameOverEvent;
+    public VoidEventSO backToMeneuEvent;
+
+    [Header("Components")]
+    public GameObject gameOverPanel;
+    public GameObject restartBtn;
 
     private void OnEnable()
     {
         healthEvent.OnEventRaised += OnHealthEvent;
-        loadEvent.LoadRequestEvent += OnLoadEvent;
+        unloadedSceneEvent.LoadRequestEvent += OnLoadEvent;
+        loadDataEvent.OnEventRaised += OnLoadDataEvent;
+        gameOverEvent.OnEventRaised += OnGameOverEvent;
+        backToMeneuEvent.OnEventRaised += OnLoadDataEvent;
     }
 
     private void OnDisable()
     {
         healthEvent.OnEventRaised -= OnHealthEvent;
-        loadEvent.LoadRequestEvent -= OnLoadEvent;
+        unloadedSceneEvent.LoadRequestEvent -= OnLoadEvent;
+        loadDataEvent.OnEventRaised -= OnLoadDataEvent;
+        gameOverEvent.OnEventRaised -= OnGameOverEvent;
+        backToMeneuEvent.OnEventRaised -= OnLoadDataEvent;
+    }
+
+    private void OnGameOverEvent()
+    {
+        gameOverPanel.SetActive(true);
+        EventSystem.current.SetSelectedGameObject(restartBtn);
+    }
+
+    private void OnLoadDataEvent()
+    {
+        gameOverPanel.SetActive(false);
     }
 
     private void OnHealthEvent(Character character)

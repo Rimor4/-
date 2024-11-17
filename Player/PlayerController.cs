@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -13,8 +14,10 @@ public class PlayerController : MonoBehaviour
     public Vector2 inputDirection;
 
     [Header("Event Listening")]
-    public SceneLoadEventSO loadEvent;
+    public SceneLoadEventSO sceneLoadEvent;
     public VoidEventSO afterSceneLoadedEvent;
+    public VoidEventSO loadDataEvent;
+    public VoidEventSO backToMeneuEvent;
 
     [Header("Physic Material")]
     public PhysicsMaterial2D normal;
@@ -50,6 +53,8 @@ public class PlayerController : MonoBehaviour
         playerAnimation = GetComponent<PlayerAnimation>();
         character = GetComponent<Character>();
 
+        inputControl.Enable();
+
         // 碰撞体初始参数
         originSize = coll.size;
         originOffset = coll.offset;
@@ -82,17 +87,21 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        inputControl.Enable();
-        loadEvent.LoadRequestEvent += OnLoadEvent;
+        sceneLoadEvent.LoadRequestEvent += OnLoadEvent;
         afterSceneLoadedEvent.OnEventRaised += OnAfterSceneLoadedEvent;
+        loadDataEvent.OnEventRaised += OnLoadDataEvent;
+        backToMeneuEvent.OnEventRaised += OnLoadDataEvent;
     }
 
     private void OnDisable()
     {
         inputControl.Disable();
-        loadEvent.LoadRequestEvent -= OnLoadEvent;
+        sceneLoadEvent.LoadRequestEvent -= OnLoadEvent;
         afterSceneLoadedEvent.OnEventRaised -= OnAfterSceneLoadedEvent;
+        loadDataEvent.OnEventRaised -= OnLoadDataEvent;
+        backToMeneuEvent.OnEventRaised -= OnLoadDataEvent;
     }
+
 
     private void Update()
     {
@@ -113,6 +122,12 @@ public class PlayerController : MonoBehaviour
     {
         // 加载场景时人物不能控制
         inputControl.Gameplay.Disable();
+    }
+
+    // 读取游戏进度
+    private void OnLoadDataEvent()
+    {
+        isDead = false;
     }
 
     private void OnAfterSceneLoadedEvent()

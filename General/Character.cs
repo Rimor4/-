@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 // 记录人物基本属性、计算伤害的类
-public class Character : MonoBehaviour
+public class Character : MonoBehaviour, ISaveable
 {
     [Header("Event Listening")]
     public VoidEventSO newGameEvent;
@@ -38,11 +38,15 @@ public class Character : MonoBehaviour
     private void OnEnable()
     {
         newGameEvent.OnEventRaised += NewGame;
+        ISaveable saveable = this;
+        saveable.RegiseterSaveData();
     }
 
     private void OnDisable()
     {
         newGameEvent.OnEventRaised -= NewGame;
+        ISaveable saveable = this;
+        saveable.UnRegiseterSaveData();
     }
 
     private void Update()
@@ -67,9 +71,12 @@ public class Character : MonoBehaviour
         // 角色掉入水中, 死亡
         if (other.CompareTag("Water"))
         {
-            currentHealth = 0;
-            OnHealthChange?.Invoke(this);
-            OnDie?.Invoke();
+            if (currentHealth > 0)
+            {
+                currentHealth = 0;
+                OnHealthChange?.Invoke(this);
+                OnDie?.Invoke();
+            }
         }
     }
 
@@ -113,5 +120,47 @@ public class Character : MonoBehaviour
     {
         currentPower -= cost;
         OnHealthChange?.Invoke(this);
+    }
+
+    public DataDefination GetDataID()
+    {
+        return GetComponent<DataDefination>();
+    }
+
+    /// <summary>
+    /// 向'data'容器中添加人物的位置信息
+    /// </summary>
+    /// <param name="data"></param>
+    public void GetSaveData(Data data)
+    {
+        if (data.characterPosDict.ContainsKey(GetDataID().ID))
+        {
+            data.characterPosDict[GetDataID().ID] = transform.position;
+            data.floatSavedData[GetDataID().ID + "health"] = this.currentHealth;
+            data.floatSavedData[GetDataID().ID + "power"] = this.currentPower;
+        }
+        else
+        {
+            data.characterPosDict.Add(GetDataID().ID, transform.position);
+            data.floatSavedData.Add(GetDataID().ID + "health", this.currentHealth);
+            data.floatSavedData.Add(GetDataID().ID + "power", this.currentPower);
+        }
+    }
+
+    /// <summary>
+    /// 从'data'容器中读取人物的位置信息
+    /// </summary>
+    /// <param name="data"></param>
+    public void LoadData(Data data)
+    {
+        Debug.Log(data.characterPosDict.Values);
+        if (data.characterPosDict.ContainsKey(GetDataID().ID))
+        {
+            transform.position = data.characterPosDict[GetDataID().ID];
+            this.currentHealth = data.floatSavedData[GetDataID().ID + "health"];
+            this.currentPower = data.floatSavedData[GetDataID().ID + "power"];
+
+            OnHealthChange?.Invoke(this);
+        }
     }
 }

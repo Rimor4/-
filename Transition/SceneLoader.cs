@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour
+public class SceneLoader : MonoBehaviour, ISaveable
 {
     public Transform playerTrans;
     public Vector3 firstPosition;
@@ -13,6 +14,7 @@ public class SceneLoader : MonoBehaviour
     [Header("Event Listening")]
     public SceneLoadEventSO loadEventSO;
     public VoidEventSO newGameEventSO;
+    public VoidEventSO backToMenuEventSO;
 
     [Header("Broadcasting")]
     public VoidEventSO afterSceneLoadedEvent;
@@ -33,14 +35,28 @@ public class SceneLoader : MonoBehaviour
 
     private void OnEnable()
     {
-        loadEventSO.LoadRequestEvent += OnLoadRequestRequest;
+        loadEventSO.LoadRequestEvent += OnLoadRequest;
         newGameEventSO.OnEventRaised += NewGame;
+        backToMenuEventSO.OnEventRaised += OnBackToMenuEvent;
+
+        ISaveable saveable = this;
+        saveable.RegiseterSaveData();
     }
 
     private void OnDisable()
     {
-        loadEventSO.LoadRequestEvent -= OnLoadRequestRequest;
+        loadEventSO.LoadRequestEvent -= OnLoadRequest;
         newGameEventSO.OnEventRaised -= NewGame;
+        backToMenuEventSO.OnEventRaised -= OnBackToMenuEvent;
+
+        ISaveable saveable = this;
+        saveable.UnRegiseterSaveData();
+    }
+
+    private void OnBackToMenuEvent()
+    {
+        sceneToLoad = menuScene;
+        loadEventSO.RaiseLoadRequestEvent(sceneToLoad, menuPosition, true);
     }
 
     private void Start()
@@ -60,7 +76,7 @@ public class SceneLoader : MonoBehaviour
     /// <param name="locationToLoad">加载的场景引用</param>
     /// <param name="posToGo">玩家传送的位置</param>
     /// <param name="fadeScreen">是否渐入渐出</param>
-    private void OnLoadRequestRequest(GameSceneSO locationToLoad, Vector3 posToGo, bool fadeScreen)
+    private void OnLoadRequest(GameSceneSO locationToLoad, Vector3 posToGo, bool fadeScreen)
     {
         if (isLoading)
         {
@@ -130,6 +146,28 @@ public class SceneLoader : MonoBehaviour
         if (currentLoadedScene.sceneType != SceneType.Menu)
             // 场景加载后事件(菜单加载完成后人物不能移动)
             afterSceneLoadedEvent.RaiseEvent();
+    }
+
+    public DataDefination GetDataID()
+    {
+        return GetComponent<DataDefination>();
+    }
+
+    public void GetSaveData(Data data)
+    {
+        data.SaveGameScene(currentLoadedScene);
+    }
+
+    public void LoadData(Data data)
+    {
+        var playerID = playerTrans.GetComponent<DataDefination>().ID;
+        if (data.characterPosDict.ContainsKey(playerID))
+        {
+            positionToGo = data.characterPosDict[playerID];
+            sceneToLoad = data.GetSavedScene();
+
+            OnLoadRequest(sceneToLoad, positionToGo, true);
+        }
     }
 }
 
