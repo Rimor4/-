@@ -135,13 +135,13 @@ public class Character : MonoBehaviour, ISaveable
     {
         if (data.characterPosDict.ContainsKey(GetDataID().ID))
         {
-            data.characterPosDict[GetDataID().ID] = transform.position;
+            data.characterPosDict[GetDataID().ID] = new SerializeVector3(transform.position);
             data.floatSavedData[GetDataID().ID + "health"] = this.currentHealth;
             data.floatSavedData[GetDataID().ID + "power"] = this.currentPower;
         }
         else
         {
-            data.characterPosDict.Add(GetDataID().ID, transform.position);
+            data.characterPosDict.Add(GetDataID().ID, new SerializeVector3(transform.position));
             data.floatSavedData.Add(GetDataID().ID + "health", this.currentHealth);
             data.floatSavedData.Add(GetDataID().ID + "power", this.currentPower);
         }
@@ -153,10 +153,9 @@ public class Character : MonoBehaviour, ISaveable
     /// <param name="data"></param>
     public void LoadData(Data data)
     {
-        Debug.Log(data.characterPosDict.Values);
         if (data.characterPosDict.ContainsKey(GetDataID().ID))
         {
-            transform.position = data.characterPosDict[GetDataID().ID];
+            transform.position = data.characterPosDict[GetDataID().ID].ToVector3();
             this.currentHealth = data.floatSavedData[GetDataID().ID + "health"];
             this.currentPower = data.floatSavedData[GetDataID().ID + "power"];
 
@@ -164,3 +163,4 @@ public class Character : MonoBehaviour, ISaveable
         }
     }
 }
+
