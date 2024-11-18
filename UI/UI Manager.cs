@@ -1,10 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
     public PlayerStatBar playerStatBar;
+
+    [Header("Broadcasting Events")]
+    public VoidEventSO pauseEvent;
 
     [Header("Event Listening")]
     public CharacterEventSO healthEvent;
@@ -12,10 +16,25 @@ public class UIManager : MonoBehaviour
     public VoidEventSO loadDataEvent;
     public VoidEventSO gameOverEvent;
     public VoidEventSO backToMeneuEvent;
+    public FloatEventSO syncVolumeEvent;
 
     [Header("Components")]
     public GameObject gameOverPanel;
     public GameObject restartBtn;
+    public GameObject mobileTouch;
+    public Button settingsBtn;
+    public GameObject pausePanel;
+    public Slider volumnSlider;
+
+    private void Awake()
+    {
+#if UNITY_STANDALONE
+        mobileTouch.SetActive(false);
+#endif
+
+        settingsBtn.onClick.AddListener(TogglePausePanel);
+    }
+
 
     private void OnEnable()
     {
@@ -24,6 +43,7 @@ public class UIManager : MonoBehaviour
         loadDataEvent.OnEventRaised += OnLoadDataEvent;
         gameOverEvent.OnEventRaised += OnGameOverEvent;
         backToMeneuEvent.OnEventRaised += OnLoadDataEvent;
+        syncVolumeEvent.OnEventRaised += OnSyncVolumeEvent;
     }
 
     private void OnDisable()
@@ -33,6 +53,27 @@ public class UIManager : MonoBehaviour
         loadDataEvent.OnEventRaised -= OnLoadDataEvent;
         gameOverEvent.OnEventRaised -= OnGameOverEvent;
         backToMeneuEvent.OnEventRaised -= OnLoadDataEvent;
+        syncVolumeEvent.OnEventRaised -= OnSyncVolumeEvent;
+    }
+
+    private void OnSyncVolumeEvent(float amount)
+    {
+        volumnSlider.value = (amount + 80) / 100;
+    }
+
+    private void TogglePausePanel()
+    {
+        if (pausePanel.activeInHierarchy)
+        {
+            pausePanel.SetActive(false);
+            Time.timeScale = 1;
+        }
+        else
+        {
+            pauseEvent.RaiseEvent();
+            pausePanel.SetActive(true);
+            Time.timeScale = 0;
+        }
     }
 
     private void OnGameOverEvent()
